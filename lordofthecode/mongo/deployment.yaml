@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  namespace: lordofthecode
+  labels:
+    app: mongo
+spec:
+  template:
+  selector:
+    matchLabels:
+      app: mongo
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 100%
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongo
+        image: mongo:3
+        args:
+          - --smallfiles
+        ports:
+        - name: mongo
+          containerPort: 27017
+        volumeMounts:
+          - name: mongo
+            mountPath: /data/db
+      volumes:
+        - name: mongo
+          persistentVolumeClaim:
+            claimName: mongo

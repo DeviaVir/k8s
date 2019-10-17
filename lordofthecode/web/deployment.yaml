@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: lordofthecode
+  labels:
+    app: web
+spec:
+  template:
+  selector:
+    matchLabels:
+      app: web
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0%
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      initContainers:
+      - name: data-permission-fix
+        image: busybox
+        command: ["/bin/chmod","-R","777", "/data"]
+        volumeMounts:
+        - name: files
+          mountPath: /data
+      containers:
+      - name: web
+        image: deviavir/lordofthecode:latest
+        imagePullPolicy: "Always"
+        env:
+          - name: VIRTUAL_HOST
+            value: "lordofthecode.nl,www.lordofthecode.nl"
+          - name: MONGO_URI
+            value: "mongodb://mongo.lordofthecode.svc/lotc"
+          - name: PORT
+            value: "80"
+          - name: DOMAIN
+            value: "www.lordofthecode.nl"
+          - name: COOKIE_SECRET
+            value: "only-two-lords-of-the-code!"
+        ports:
+        - name: web
+          containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        volumeMounts:
+          - name: files
+            mountPath: /usr/src/app/public/files
+      volumes:
+        - name: files
+          persistentVolumeClaim:
+            claimName: web-files

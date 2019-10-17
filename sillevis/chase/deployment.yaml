@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chase
+  namespace: sillevis
+  labels:
+    app: chase
+spec:
+  template:
+  selector:
+    matchLabels:
+      app: chase
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0%
+  template:
+    metadata:
+      labels:
+        app: chase
+    spec:
+      containers:
+      - name: chase
+        image: deviavir/chase:latest
+        imagePullPolicy: "Always"
+        ports:
+        - name: http
+          containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 30
