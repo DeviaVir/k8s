@@ -3,14 +3,14 @@ image:
   repository: bitnami/ghost
   tag: 3.35.5-debian-10-r0
 
-# ghostProtocol: https
-# ghostHost: wolfdogs.pl
+# ghostProtocol: http
+# ghostHost: evelyn-mario.wedding
 # ghostPort:
 ghostPath: /
 
 ghostUsername: chase
-ghostEmail: chase@wolfdogs.pl
-ghostBlogTitle: "Z Granitowego Wzgórza"
+ghostEmail: chase@sillevis.net
+ghostBlogTitle: "evelyn X mario"
 allowEmptyPassword: true
 existingSecret:
   name: custom-ghost
@@ -31,6 +31,11 @@ mariadb:
       storageClass: do-block-storage
       accessMode: ReadWriteOnce
       size: 8Gi
+
+livenessProbe:
+  enabled: false
+readinessProbe:
+  enabled: false
 
 resources:
   requests:
@@ -62,12 +67,12 @@ ingress:
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
 
   hosts:
-    - name: wolfdogs.pl
+    - name: evelyn-mario.wedding
       path: /
       tls: true
 
       tlsHosts:
-        - www.wolfdogs.pl
-        - wolfdogs.pl
+        - www.evelyn-mario.wedding
+        - evelyn-mario.wedding
 
-      tlsSecret: wolfdogs.pl-tls
+      tlsSecret: evelyn-mario.wedding-tls
