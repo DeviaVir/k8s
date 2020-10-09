@@ -17,3 +17,9 @@ Update the `values.yaml` and then trigger helm:
 ```
 helm upgrade ghost bitnami/ghost --namespace zgranitowegowzgorza -f values.yaml
 ```
+
+## Secrets
+
+```
+kubectl -n zgranitowegowzgorza create secret generic custom-ghost --from-file=ghost-password=ghost-password.secret
+```
