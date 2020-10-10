@@ -1,11 +1,12 @@
 image:
   registry: docker.io
   repository: bitnami/ghost
-  tag: 3.35.5-debian-10-r0
+  tag: 3.35.5-debian-10-r1
+  #tag: 2.37.0-r11
 
-# ghostProtocol: https
-# ghostHost: wolfdogs.pl
-# ghostPort:
+ghostProtocol: https
+ghostHost: wolfdogs.pl
+ghostPort: 443
 ghostPath: /
 
 ghostUsername: chase
@@ -34,9 +35,11 @@ mariadb:
 
 resources:
   requests:
-    memory: 128Mi
-    cpu: 300m
-
+    memory: 175Mi
+    cpu: 100m
+  limits:
+    memory: 500Mi
+    cpu: 500m
 service:
   type: ClusterIP
 
@@ -60,8 +63,19 @@ ingress:
     certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.org/client-max-body-size: "10m"
 
   hosts:
+    - name: www.wolfdogs.pl
+      path: /
+      tls: true
+
+      tlsHosts:
+        - www.wolfdogs.pl
+        - wolfdogs.pl
+
+      tlsSecret: wolfdogs.pl-tls
     - name: wolfdogs.pl
       path: /
       tls: true
