@@ -63,8 +63,8 @@ ingress:
     certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
-    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
-    nginx.org/client-max-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+    nginx.org/client-max-body-size: "20m"
 
   hosts:
     - name: www.wolfdogs.pl

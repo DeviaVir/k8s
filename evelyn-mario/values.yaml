@@ -1,11 +1,11 @@
 image:
   registry: docker.io
   repository: bitnami/ghost
-  tag: 3.35.5-debian-10-r0
+  tag: 3.35.5-debian-10-r1
 
-# ghostProtocol: http
-# ghostHost: evelyn-mario.wedding
-# ghostPort:
+ghostProtocol: https
+ghostHost: evelyn-mario.wedding
+ghostPort: 443
 ghostPath: /
 
 ghostUsername: chase
@@ -67,6 +67,15 @@ ingress:
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
 
   hosts:
+    - name: www.evelyn-mario.wedding
+      path: /
+      tls: true
+
+      tlsHosts:
+        - www.evelyn-mario.wedding
+        - evelyn-mario.wedding
+
+      tlsSecret: evelyn-mario.wedding-tls
     - name: evelyn-mario.wedding
       path: /
       tls: true
