@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: quakejs
+  namespace: quakejs
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
+    nginx.ingress.kubernetes.io/websocket-services: quakejs
+    nginx.org/websocket-services: quakejs
+spec:
+  rules:
+  - host: quake.sillevis.net
+    http:
+      paths:
+      - backend:
+          serviceName: quakejs
+          servicePort: 80
+        path: /
+  tls:
+  - hosts:
+    - quake.sillevis.net
+    secretName: quake-sillevis-net-tls
