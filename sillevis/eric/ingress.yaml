@@ -1,22 +1,24 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: eric
   namespace: sillevis
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
-    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
 spec:
   rules:
   - host: eric.sillevis.net
     http:
       paths:
-      - backend:
-          serviceName: eric
-          servicePort: 80
-        path: /
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: eric
+            port:
+              number: 80
   tls:
   - hosts:
     - eric.sillevis.net

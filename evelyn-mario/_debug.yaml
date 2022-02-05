@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app.kubernetes.io/name: ghost
+  name: ghost-debug
+  namespace: evelyn-mario
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: pool-eux18fyse-u5r9m
+  containers:
+  - env:
+    - name: ALLOW_EMPTY_PASSWORD
+      value: "yes"
+    - name: MARIADB_HOST
+      value: ghost-mariadb
+    - name: MARIADB_PORT_NUMBER
+      value: "3306"
+    - name: GHOST_DATABASE_NAME
+      value: bitnami_ghost
+    - name: GHOST_DATABASE_USER
+      value: bn_ghost
+    - name: GHOST_DATABASE_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: mariadb-password
+          name: ghost-mariadb
+    - name: GHOST_HOST
+      value: 178.128.142.177/
+    - name: GHOST_PROTOCOL
+      value: https
+    - name: GHOST_PORT_NUMBER
+      value: "443"
+    - name: GHOST_USERNAME
+      value: chase
+    - name: GHOST_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: ghost-password
+          name: custom-ghost
+    - name: GHOST_EMAIL
+      value: chase@sillevis.net
+    - name: BLOG_TITLE
+      value: evelyn X mario
+    image: docker.io/bitnami/ghost:3.40.5-debian-10-r0
+    imagePullPolicy: IfNotPresent
+    name: ghost
+    command:
+    - bash
+    args:
+    - -c
+    - "sleep 36000"
+    ports:
+    - containerPort: 2368
+      name: http
+      protocol: TCP
+    resources:
+      requests:
+        cpu: 10m
+        memory: 30Mi
+    volumeMounts:
+    - mountPath: /bitnami/ghost
+      name: ghost-data
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: default-token-7fj9s
+      readOnly: true
+  volumes:
+  - name: ghost-data
+    persistentVolumeClaim:
+      claimName: ghost
+  - name: default-token-7fj9s
+    secret:
+      defaultMode: 420
+      secretName: default-token-7fj9s

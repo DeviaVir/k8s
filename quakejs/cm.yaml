@@ -5,12 +5,12 @@ metadata:
   namespace: quakejs
 data:
   config.yaml: |
-    fragLimit: 25
-    timeLimit: 15m
+    fragLimit: 50
+    timeLimit: 30m
     bot:
       minPlayers: 3
     game:
-      motd: "Welcome to Critical Stack"
+      motd: "Welcome to Sillevis.Net Quake"
       type: FreeForAll
       forceRespawn: false
       inactivity: 10m

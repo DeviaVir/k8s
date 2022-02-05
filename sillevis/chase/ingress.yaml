@@ -1,22 +1,24 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: chase
   namespace: sillevis
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
-    kubernetes.io/tls-acme: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
 spec:
   rules:
   - host: chase.sillevis.net
     http:
       paths:
-      - backend:
-          serviceName: chase
-          servicePort: 80
-        path: /
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: chase
+            port:
+              number: 80
   tls:
   - hosts:
     - chase.sillevis.net

@@ -6,7 +6,6 @@ metadata:
   labels:
     app: chase
 spec:
-  template:
   selector:
     matchLabels:
       app: chase

@@ -6,7 +6,6 @@ metadata:
   labels:
     app: eric
 spec:
-  template:
   selector:
     matchLabels:
       app: eric

@@ -7,7 +7,7 @@ zgranitowegowzgorza is deployed using the `bitnami/ghost` helm chart. The source
 ### Install
 
 ```
-helm install ghost bitnami/ghost --namespace zgranitowegowzgorza -f values.yaml
+helm install ghost bitnami/ghost --namespace zgranitowegowzgorza -f values.yaml --version 10.1.19
 ```
 
 ### Upgrade
@@ -15,7 +15,9 @@ helm install ghost bitnami/ghost --namespace zgranitowegowzgorza -f values.yaml
 Update the `values.yaml` and then trigger helm:
 
 ```
-helm upgrade ghost bitnami/ghost --namespace zgranitowegowzgorza -f values.yaml
+export MARIADB_ROOT_PASSWORD=$(kubectl get secret --namespace zgranitowegowzgorza ghost-mariadb -o jsonpath="{.data.mariadb-root-password}" | base64 --decode)
+export MARIADB_PASSWORD=$(kubectl get secret --namespace zgranitowegowzgorza ghost-mariadb -o jsonpath="{.data.mariadb-password}" | base64 --decode)
+helm upgrade ghost bitnami/ghost --namespace zgranitowegowzgorza -f values.yaml --set mariadb.rootUser.password=$MARIADB_ROOT_PASSWORD --set mariadb.db.password=$MARIADB_PASSWORD --version 10.1.19 
 ```
 
 ## Secrets
