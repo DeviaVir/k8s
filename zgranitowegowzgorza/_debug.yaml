@@ -3,8 +3,10 @@ kind: Pod
 metadata:
   labels:
     app.kubernetes.io/name: ghost
+    app.kubernetes.io/component: ghost
+    app.kubernetes.io/instance: zgranitowego
   name: ghost-debug
-  namespace: evelyn-mario
+  namespace: zgranitowegowzgorza
 spec:
   securityContext:
     runAsUser: 999
@@ -19,9 +21,9 @@ spec:
     - name: GHOST_DATABASE_PORT_NUMBER                                                                                                                               
       value: "25060"                                                                                                                                                 
     - name: GHOST_DATABASE_NAME                                                                                                                                      
-      value: evelyn-mario
+      value: zgranitowego
     - name: GHOST_DATABASE_USER
-      value: evelyn-mario                                                                                                                                            
+      value: zgranitowego                                                                                                                                            
     - name: GHOST_DATABASE_PASSWORD                                                                                                                                  
       valueFrom:                                                                                                                                                     
         secretKeyRef:                                                                                                                                                
@@ -34,7 +36,7 @@ spec:
     - name: GHOST_DATABASE_SSL_CA_FILE                                                                                                                               
       value: /secrets/mysql-ca-certificates.crt                                                                                                                      
     - name: GHOST_HOST                                                                                                                                               
-      value: evelyn-mario.wedding/                                                                                                                                   
+      value: wolfdogs.pl/                                                                                                                                   
     - name: GHOST_PORT_NUMBER                                                                                                                                        
       value: "2368"
     - name: GHOST_USERNAME                                                                                                                                           
@@ -47,7 +49,7 @@ spec:
     - name: GHOST_EMAIL
       value: chase@sillevis.net
     - name: BLOG_TITLE
-      value: evelyn X mario
+      value: Wolfdogs
     - name: GHOST_ENABLE_HTTPS                                                                                                                                       
       value: "no"
     - name: GHOST_EXTERNAL_HTTP_PORT_NUMBER                                                                                                                          
@@ -78,13 +80,13 @@ spec:
     - mountPath: /bitnami/ghost
       name: ghost-data
     - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-      name: default-token-7fj9s
+      name: default-token-58t5q
       readOnly: true
   volumes:
   - name: ghost-data
     persistentVolumeClaim:
       claimName: ghost
-  - name: default-token-7fj9s
+  - name: default-token-58t5q
     secret:
       defaultMode: 420
-      secretName: default-token-7fj9s
+      secretName: default-token-58t5q

@@ -1,37 +1,54 @@
-image:
-  registry: docker.io
-  repository: bitnami/ghost
-  tag: 3.35.5-debian-10-r1
-  #tag: 2.37.0-r11
-
 ghostProtocol: https
 ghostHost: wolfdogs.pl
 ghostPort: 443
 ghostPath: /
 
+#image:
+#  debug: true
+
 ghostUsername: chase
 ghostEmail: chase@wolfdogs.pl
 ghostBlogTitle: "Z Granitowego Wzgórza"
-allowEmptyPassword: true
-existingSecret:
-  name: custom-ghost
-  keyMapping:
-    ghost-password: ghost-password
-#   smtp-password: mySmtpPasswordKey
+allowEmptyPassword: false
+existingSecret: custom-ghost
 
+updateStrategy:
+  type: Recreate
+
+livenessProbe:
+  enabled: false
+readinessProbe:
+  enabled: false
+
+mysql:
+  enabled: false
 mariadb:
-  ## Whether to deploy a mariadb server to satisfy the applications database requirements. To use an external database set this to false and configure the externalDatabase parameters
-  enabled: true
-  ## Disable MariaDB replication
-  replication:
-    enabled: false
+  enabled: false
 
-  master:
-    persistence:
-      enabled: true
-      storageClass: do-block-storage
-      accessMode: ReadWriteOnce
-      size: 8Gi
+#ghostSkipInstall: true
+#extraEnvVars:
+#  - name: GHOST_SKIP_BOOTSTRAP
+#    value: "yes"
+
+externalDatabase:
+  host: private-db-mysql-ams3-86213-do-user-2623710-0.b.db.ondigitalocean.com
+  port: 25060
+  user: zgranitowego
+  database: zgranitowego
+  existingSecret: mysql-password
+  ssl: true
+  sslCaFile: /secrets/mysql-ca-certificates.crt
+
+extraVolumeMounts:
+  - name: mysql-ca
+    mountPath: /secrets/mysql-ca-certificates.crt
+    subPath: mysql-ca-certificates.crt
+    readOnly: true
+extraVolumes:
+  - name: mysql-ca
+    secret:
+      secretName: mysql-ca-bundle
+      optional: false
 
 resources:
   requests:
@@ -40,6 +57,7 @@ resources:
   limits:
     memory: 500Mi
     cpu: 500m
+
 service:
   type: ClusterIP
 
@@ -52,11 +70,16 @@ persistence:
   accessMode: ReadWriteOnce
   size: 8Gi
   path: /bitnami
-
+  existingClaim: ghost
 
 ingress:
   enabled: true
   certManager: true
+
+  hostname: wolfdogs.pl
+  path: /
+  tls: true
+  ingressClassName: "nginx"
 
   annotations:
     kubernetes.io/ingress.class: "nginx"
@@ -64,24 +87,3 @@ ingress:
     nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "20m"
-    nginx.org/client-max-body-size: "20m"
-
-  hosts:
-    - name: www.wolfdogs.pl
-      path: /
-      tls: true
-
-      tlsHosts:
-        - www.wolfdogs.pl
-        - wolfdogs.pl
-
-      tlsSecret: wolfdogs.pl-tls
-    - name: wolfdogs.pl
-      path: /
-      tls: true
-
-      tlsHosts:
-        - www.wolfdogs.pl
-        - wolfdogs.pl
-
-      tlsSecret: wolfdogs.pl-tls

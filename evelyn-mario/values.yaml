@@ -3,40 +3,56 @@ ghostHost: evelyn-mario.wedding
 ghostPort: 443
 ghostPath: /
 
+#image:
+#  debug: true
+
 ghostUsername: chase
 ghostEmail: chase@sillevis.net
 ghostBlogTitle: "evelyn X mario"
-allowEmptyPassword: true
-existingSecret:
-  name: custom-ghost
-  keyMapping:
-    ghost-password: ghost-password
-#   smtp-password: mySmtpPasswordKey
+allowEmptyPassword: false
+existingSecret: custom-ghost
 
-mariadb:
-  enabled: true
-  master:
-    persistence:
-      accessMode: ReadWriteOnce
-      enabled: true
-      size: 8Gi
-      storageClass: do-block-storage
-  primary:
-    persistence:
-      existingClaim: data-ghost-mariadb-0
-  replication:
-    enabled: false
+updateStrategy:
+  type: Recreate
 
 livenessProbe:
   enabled: false
 readinessProbe:
   enabled: false
 
+mysql:
+  enabled: false
+mariadb:
+  enabled: false
+
+#extraEnvVars:
+#  - name: GHOST_SKIP_BOOTSTRAP
+#    value: "yes"
+
+externalDatabase:
+  host: private-db-mysql-ams3-86213-do-user-2623710-0.b.db.ondigitalocean.com
+  port: 25060
+  user: evelyn-mario
+  database: evelyn-mario
+  existingSecret: mysql-password
+  ssl: true
+  sslCaFile: /secrets/mysql-ca-certificates.crt
+
+extraVolumeMounts:
+  - name: mysql-ca
+    mountPath: /secrets/mysql-ca-certificates.crt
+    subPath: mysql-ca-certificates.crt
+    readOnly: true
+extraVolumes:
+  - name: mysql-ca
+    secret:
+      secretName: mysql-ca-bundle
+      optional: false
+
 resources:
   requests:
     memory: 128Mi
     cpu: 300m
-
 
 service:
   port: 80
@@ -48,7 +64,6 @@ persistence:
   accessMode: ReadWriteOnce
   size: 8Gi
   path: /bitnami
-
 
 ingress:
   enabled: true
