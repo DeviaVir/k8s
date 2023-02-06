@@ -3,6 +3,13 @@ kind: Deployment
 metadata:
   name: quakejs
   namespace: quakejs
+  labels:
+    run: quakejs
+    kube-monkey/enabled: enabled
+    kube-monkey/identifier: quake-victim
+    kube-monkey/mtbf: "2"
+    kube-monkey/kill-mode: "kill-all"
+    kube-monkey/kill-value: "1"
 spec:
   selector:
     matchLabels:
@@ -11,43 +18,48 @@ spec:
   template:
     metadata:
       labels:
+        kube-monkey/enabled: enabled
+        kube-monkey/identifier: quake-victim
+        kube-monkey/mtbf: "2"
+        kube-monkey/kill-mode: "kill-all"
+        kube-monkey/kill-value: "1"
         run: quakejs
       annotations:
-        prometheus.io/scrape: 'true'
-        prometheus.io/port: '8080'
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
     spec:
       containers:
-      - command:
-        - q3
-        - server
-        - --config=/config/config.yaml
-        - --content-server=http://localhost:9090
-        - --agree-eula
-        image: docker.io/criticalstack/quake:v1
-        name: server
-        ports:
-        - containerPort: 8080
-        readinessProbe:
-          tcpSocket:
-            port: 8080
-          initialDelaySeconds: 15
-          periodSeconds: 5
-        volumeMounts:
-        - name: quake3-server-config
-          mountPath: /config
-        - name: quake3-content
-          mountPath: /assets
-      - command:
-        - q3
-        - content
-        - --seed-content-url=http://content.quakejs.com
-        image: docker.io/criticalstack/quake:v1
-        name: content-server
-        ports:
-        - containerPort: 9090
-        volumeMounts:
-        - name: quake3-content
-          mountPath: /assets
+        - command:
+            - q3
+            - server
+            - --config=/config/config.yaml
+            - --content-server=http://localhost:9090
+            - --agree-eula
+          image: docker.io/criticalstack/quake:v1
+          name: server
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          volumeMounts:
+            - name: quake3-server-config
+              mountPath: /config
+            - name: quake3-content
+              mountPath: /assets
+        - command:
+            - q3
+            - content
+            - --seed-content-url=http://content.quakejs.com
+          image: docker.io/criticalstack/quake:v1
+          name: content-server
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: quake3-content
+              mountPath: /assets
       volumes:
         - name: quake3-server-config
           configMap:
