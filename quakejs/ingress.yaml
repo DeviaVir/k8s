@@ -4,24 +4,23 @@ metadata:
   name: quakejs
   namespace: quakejs
   annotations:
-    kubernetes.io/ingress.class: "nginx"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
-    nginx.ingress.kubernetes.io/websocket-services: quakejs
-    nginx.org/websocket-services: quakejs
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 spec:
+  ingressClassName: nginx
   rules:
-  - host: quake.sillevis.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: quakejs
-            port:
-              number: 80
+    - host: quake.sillevis.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: quake
+                port:
+                  name: client
   tls:
-  - hosts:
-    - quake.sillevis.net
-    secretName: quake-sillevis-net-tls
+    - hosts:
+        - quake.sillevis.net
+      secretName: quake-sillevis-net-tls

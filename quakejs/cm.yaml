@@ -21,6 +21,7 @@ data:
       maxClients: 12
       password: "changeme"
     commands:
+      - addbot crash 1
       - addbot sarge 2
     maps:
     - name: q3dm7
