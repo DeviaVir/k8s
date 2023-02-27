@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wordpress
+  namespace: vanleeuwenairconditioning
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+  serviceName: wordpress
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      securityContext:
+        fsGroup: 82
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          resources:
+            requests:
+              memory: 25Mi
+              cpu: 50m
+            limits:
+              memory: 50Mi
+              cpu: 80m
+          securityContext:
+            readOnlyRootFilesystem: true
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /var/cache/nginx/
+            - name: run
+              mountPath: /var/run/
+            - name: wordpress-data
+              mountPath: /var/www/html
+        - name: wordpress
+          image: deviavir/wordpress-mysqli:6-fpm-alpine
+          ports:
+            - name: fpm
+              containerPort: 9000
+          resources:
+            requests:
+              memory: 300Mi
+              cpu: 300m
+            limits:
+              memory: 500Mi
+              cpu: 600m
+          securityContext:
+            readOnlyRootFilesystem: true
+          env:
+            - name: WORDPRESS_DB_HOST
+              value: "private-db-mysql-ams3-86213-do-user-2623710-0.b.db.ondigitalocean.com:25060"
+            - name: WORDPRESS_DB_USER
+              value: "vanleeuwenairconditioning"
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secrets
+                  key: wordpress-db-password
+            - name: WORDPRESS_AUTH_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secrets
+                  key: auth_key
+            - name: WORDPRESS_SECURE_AUTH_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secrets
+                  key: secure_auth_key
+            - name: WORDPRESS_LOGGED_IN_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secrets
+                  key: logged_in_key
+            - name: WORDPRESS_NONCE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secrets
+                  key: nonce_key
+            - name: WORDPRESS_AUTH_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secrets
+                  key: auth_salt
+            - name: WORDPRESS_SECURE_AUTH_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secrets
+                  key: secure_auth_salt
+            - name: WORDPRESS_LOGGED_IN_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secrets
+                  key: logged_in_salt
+            - name: WORDPRESS_NONCE_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secrets
+                  key: nonce_salt
+            - name: WORDPRESS_TABLE_PREFIX
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secrets
+                  key: table_prefix
+            - name: WORDPRESS_DB_NAME
+              value: "vanleeuwenairconditioning"
+            - name: WORDPRESS_CONFIG_EXTRA
+              value: |
+                define('MYSQL_CLIENT_FLAGS', MYSQLI_CLIENT_SSL);
+                define('MYSQL_SSL_CA', '/secrets/ca-certificate.crt');
+            - name: WORDPRESS_DEBUG
+              value: "1"
+          volumeMounts:
+            - name: wordpress-data
+              mountPath: /var/www/html
+            - name: tmp
+              mountPath: /tmp
+            - name: mysql-ca
+              mountPath: /secrets/ca-certificate.crt
+              subPath: mysql-ca-certificates.crt
+              readOnly: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: cache
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+        - name: mysql-ca
+          secret:
+            secretName: mysql-ca-bundle
+            optional: false
+  volumeClaimTemplates:
+    - metadata:
+        name: wordpress-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: do-block-storage
+        resources:
+          requests:
+            storage: 1Gi

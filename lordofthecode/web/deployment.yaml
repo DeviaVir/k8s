@@ -6,7 +6,6 @@ metadata:
   labels:
     app: web
 spec:
-  template:
   selector:
     matchLabels:
       app: web
@@ -22,39 +21,46 @@ spec:
         app: web
     spec:
       initContainers:
-      - name: data-permission-fix
-        image: busybox
-        command: ["/bin/chmod","-R","777", "/data"]
-        volumeMounts:
-        - name: files
-          mountPath: /data
+        - name: data-permission-fix
+          image: busybox
+          command: ["/bin/chmod", "-R", "777", "/data"]
+          volumeMounts:
+            - name: files
+              mountPath: /data
       containers:
-      - name: web
-        image: deviavir/lordofthecode:latest
-        imagePullPolicy: "Always"
-        env:
-          - name: VIRTUAL_HOST
-            value: "lordofthecode.nl,www.lordofthecode.nl"
-          - name: MONGO_URI
-            value: "mongodb://mongo.lordofthecode.svc/lotc"
-          - name: PORT
-            value: "80"
-          - name: DOMAIN
-            value: "www.lordofthecode.nl"
-          - name: COOKIE_SECRET
-            value: "only-two-lords-of-the-code!"
-        ports:
         - name: web
-          containerPort: 80
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 30
-          periodSeconds: 30
-        volumeMounts:
-          - name: files
-            mountPath: /usr/src/app/public/files
+          image: deviavir/lordofthecode:latest
+          imagePullPolicy: "Always"
+          resources:
+            requests:
+              memory: 100Mi
+              cpu: 150m
+            limits:
+              memory: 200Mi
+              cpu: 300m
+          env:
+            - name: VIRTUAL_HOST
+              value: "lordofthecode.nl,www.lordofthecode.nl"
+            - name: MONGO_URI
+              value: "mongodb://mongo.lordofthecode.svc/lotc"
+            - name: PORT
+              value: "80"
+            - name: DOMAIN
+              value: "www.lordofthecode.nl"
+            - name: COOKIE_SECRET
+              value: "only-two-lords-of-the-code!"
+          ports:
+            - name: web
+              containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          volumeMounts:
+            - name: files
+              mountPath: /usr/src/app/public/files
       volumes:
         - name: files
           persistentVolumeClaim:

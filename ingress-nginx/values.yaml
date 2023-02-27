@@ -1,0 +1,13 @@
+controller:
+  replicaCount: 1
+  publishService:
+    enabled: true
+  config:
+    use-proxy-protocol: true
+    use-forward-headers: true
+    compute-full-forward-for: true
+    proxy-body-size: "10240m"
+  service:
+    externalTrafficPolicy: "Local"
+    annotations:
+      service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "true"

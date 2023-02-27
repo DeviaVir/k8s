@@ -6,7 +6,6 @@ metadata:
   labels:
     app: mongo
 spec:
-  template:
   selector:
     matchLabels:
       app: mongo
@@ -22,16 +21,23 @@ spec:
         app: mongo
     spec:
       containers:
-      - name: mongo
-        image: mongo:3
-        args:
-          - --smallfiles
-        ports:
         - name: mongo
-          containerPort: 27017
-        volumeMounts:
-          - name: mongo
-            mountPath: /data/db
+          image: mongo:3
+          args:
+            - --smallfiles
+          resources:
+            requests:
+              memory: 250Mi
+              cpu: 150m
+            limits:
+              memory: 300Mi
+              cpu: 300m
+          ports:
+            - name: mongo
+              containerPort: 27017
+          volumeMounts:
+            - name: mongo
+              mountPath: /data/db
       volumes:
         - name: mongo
           persistentVolumeClaim:
