@@ -50,10 +50,10 @@ spec:
           resources:
             requests:
               memory: 300Mi
-              cpu: 300m
+              cpu: 200m
             limits:
               memory: 500Mi
-              cpu: 600m
+              cpu: 300m
           securityContext:
             readOnlyRootFilesystem: true
           env:

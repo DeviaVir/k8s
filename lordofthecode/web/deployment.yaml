@@ -11,10 +11,7 @@ spec:
       app: web
   replicas: 1
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0%
+    type: Recreate
   template:
     metadata:
       labels:
@@ -37,7 +34,7 @@ spec:
               cpu: 150m
             limits:
               memory: 200Mi
-              cpu: 300m
+              cpu: 200m
           env:
             - name: VIRTUAL_HOST
               value: "lordofthecode.nl,www.lordofthecode.nl"

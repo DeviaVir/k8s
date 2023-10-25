@@ -52,10 +52,10 @@ extraVolumes:
 resources:
   requests:
     memory: 128Mi
-    cpu: 300m
+    cpu: 150m
   limits:
     memory: 256Mi
-    cpu: 600m
+    cpu: 300m
 
 service:
   port: 80
