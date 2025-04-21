@@ -1,6 +1,8 @@
-### GKE
+# lordofthecode
+
+## Hosted on OVH
 
 ```bash
-KUBECONFIG=~/.kube/lotc gcloud container clusters get-credentials lotc-hosting --region europe-west4 --project lord-of-the-code
-export KUBECONFIG=~/.kube/lotc
+minikube start --ports=80:30080,443:30443
+minikube addons enable metrics-server
 ```

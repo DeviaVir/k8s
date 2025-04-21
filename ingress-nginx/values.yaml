@@ -6,5 +6,16 @@ controller:
     use-forward-headers: true
     compute-full-forward-for: true
     proxy-body-size: "10240m"
+    proxy-real-ip-cidr: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
   service:
+    type: NodePort
     externalTrafficPolicy: "Local"
+    ports:
+      http: 30080 # Make the Service listen internally on 30080
+      https: 30443 # Make the Service listen internally on 30443
+    nodePorts:
+      http: 30080 # Expose Service port 30080 on Node port 30080
+      https: 30443 # Expose Service port 30443 on Node port 30443
+    targetPorts:
+      http: http # Still forward to the container's actual listening port (e.g., 8080)
+      https: https # Still forward to the container's actual listening port

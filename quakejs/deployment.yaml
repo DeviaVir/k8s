@@ -5,28 +5,17 @@ metadata:
   namespace: quakejs
   labels:
     run: quakejs
-    kube-monkey/enabled: enabled
-    kube-monkey/identifier: quake-victim
-    kube-monkey/mtbf: "2"
-    kube-monkey/kill-mode: "kill-all"
-    kube-monkey/kill-value: "1"
 spec:
   selector:
     matchLabels:
       run: quakejs
+  strategy:
+    type: Recreate
   replicas: 1
   template:
     metadata:
       labels:
-        kube-monkey/enabled: enabled
-        kube-monkey/identifier: quake-victim
-        kube-monkey/mtbf: "2"
-        kube-monkey/kill-mode: "kill-all"
-        kube-monkey/kill-value: "1"
         run: quakejs
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "8080"
     spec:
       containers:
         - command:
@@ -50,7 +39,6 @@ spec:
               cpu: 500m
             limits:
               memory: 500Mi
-              cpu: 1
           volumeMounts:
             - name: quake3-server-config
               mountPath: /config
