@@ -1,0 +1,162 @@
+# values.yaml for bitnami/mysql chart (oci://registry-1.docker.io/bitnamicharts/mysql)
+# --- Generic Settings ---
+# Using a non-root user enhances security. Bitnami charts often handle this well.
+# Check the specific chart version documentation for exact UID/GID if needed.
+# diagnosticMode:
+#   enabled: false # Keep this disabled unless actively debugging.
+
+# --- Authentication ---
+# Goal: Avoid hardcoding passwords in the values file. Use existing secrets.
+auth:
+  # If you already have a Kubernetes secret with keys 'mysql-root-password' and 'mysql-password',
+  # reference it here. This is the SAFEST approach.
+  existingSecret: "my-mysql-secret" # Name of your existing secret
+
+  # If you MUST create credentials via Helm (less ideal for production secrets management),
+  # let the chart create a secret, but consider managing it externally post-install.
+  # Avoid setting rootPassword and password directly here if possible.
+  # rootPassword: "" # Let chart generate if not using existingSecret, or set a strong one if needed temporarily.
+  # password: ""     # Let chart generate if not using existingSecret, or set a strong one for the user.
+  database: "chase" # Name of the default database to create
+  username: "chase" # Name of the default user to create
+
+  # Enable root user connection only from localhost within the container for better security.
+  # Set to false only if you absolutely need external root access (usually not recommended).
+  # rootUser:
+  #   enabled: true
+
+# --- Primary Node Configuration (Master in simple Master/Slave) ---
+primary:
+  # --- Persistence ---
+  # Goal: Ensure data survives pod restarts. Essential for a database!
+  persistence:
+    enabled: true
+    # Use a StorageClass that provides good performance (e.g., SSD-backed).
+    # Consult your cluster's available StorageClasses (`kubectl get sc`).
+    storageClass: "standard" # CHANGE THIS to a suitable StorageClass in your cluster
+    accessModes:
+      - ReadWriteOnce # Standard for single-node persistent volumes
+    size: 20Gi # STARTING POINT - Adjust based on expected data size + growth. Monitor usage!
+    # existingClaim: "" # Use if you have a pre-existing PVC
+
+  # --- Resources ---
+  # Goal: Provide enough resources for performance but set limits for safety.
+  # These are STARTING POINTS. Monitor CPU/Memory usage and tune based on workload!
+  resources:
+    requests:
+      memory: "1Gi" # Minimum memory MySQL needs to start comfortably
+      cpu: "500m" # Minimum CPU allocation (0.5 vCPU)
+    limits:
+      memory: "4Gi" # Maximum memory MySQL can consume. Crucial to prevent OOMKills.
+      cpu: "2000m" # Maximum CPU (2 vCPUs). Prevents runaway queries hogging nodes.
+
+  # --- Performance & Safety Tuning (my.cnf) ---
+  # Goal: Apply common performance/safety settings.
+  # This adds configuration to the MySQL config file (my.cnf).
+  # Highly workload-dependent! Research these settings for your use case.
+  configuration: |
+    [mysqld]
+    skip-name-resolve           # Minor performance boost, avoids DNS lookups for connections. Requires clients connect via IP or configured hostnames.
+    max_allowed_packet=64M      # Allows larger data packets (adjust if needed for large blobs/text). Default is often too small.
+    innodb_buffer_pool_size=2G  # CRITICAL performance setting. Aim for ~70-80% of allocated RAM limit if dedicated node, maybe 50-60% if shared, leaving room for OS/other processes. MONITOR! Value MUST be less than the memory limit.
+    innodb_log_file_size=256M   # Influences write performance and recovery time. Larger can be faster but increases recovery time.
+    max_connections=151         # Default is often 151. Increase cautiously based on application needs and available memory. Each connection consumes memory.
+    sql_mode="STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION" # Sensible strict mode for data integrity.
+
+    authentication_policy='* ,,'
+    explicit_defaults_for_timestamp
+    basedir=/opt/bitnami/mysql
+    plugin_dir=/opt/bitnami/mysql/lib/plugin
+    port=3306
+    mysqlx=0
+    mysqlx_port=33060
+    socket=/opt/bitnami/mysql/tmp/mysql.sock
+    datadir=/bitnami/mysql/data
+    tmpdir=/opt/bitnami/mysql/tmp
+    bind-address=*
+    pid-file=/opt/bitnami/mysql/tmp/mysqld.pid
+    log-error=/opt/bitnami/mysql/logs/mysqld.log
+    character-set-server=UTF8
+    slow_query_log=0
+    long_query_time=10.0
+
+    [client]
+    port=3306
+    socket=/opt/bitnami/mysql/tmp/mysql.sock
+    default-character-set=UTF8
+    plugin_dir=/opt/bitnami/mysql/lib/plugin
+
+    [manager]
+    port=3306
+    socket=/opt/bitnami/mysql/tmp/mysql.sock
+    pid-file=/opt/bitnami/mysql/tmp/mysqld.pid
+  # --- Service ---
+  # How the primary node is exposed within the cluster.
+  service:
+    type: ClusterIP # Usually sufficient unless you need external access directly (LoadBalancer/NodePort - less common for DBs)
+    # port: 3306 # Default MySQL port
+
+  # --- Security Context ---
+  # Run the container as a non-root user if the chart/image supports it (Bitnami does).
+  # These are often defaults in recent Bitnami charts, but good to be explicit.
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001 # Matches the default non-root user GID in many Bitnami images
+  containerSecurityContext:
+    enabled: true
+    runAsUser: 1001 # Matches the default non-root user UID in many Bitnami images
+
+# --- Secondary Node Configuration (Replica/Slave) ---
+# Goal: Improve read scalability and provide basic HA (failover is often manual with basic replication).
+secondary:
+  # Set replicaCount > 0 to enable read replicas.
+  replicaCount: 1 # Start with one replica for read scaling / warm standby.
+
+  # --- Persistence (same principle as primary) ---
+  persistence:
+    enabled: true
+    storageClass: "standard" # Use the same performant StorageClass
+    accessModes:
+      - ReadWriteOnce
+    size: 20Gi # Should generally match primary size
+
+  # --- Resources (can often be slightly lower than primary, depends on read load) ---
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "4Gi" # Match primary if it might become primary after failover, or adjust based on read load.
+      cpu: "2000m"
+
+  # --- Service (for directing read traffic) ---
+  # The chart often creates a separate service for read replicas.
+  # service:
+  #   type: ClusterIP
+  #   port: 3306
+
+  # --- Security Context (same as primary) ---
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+  containerSecurityContext:
+    enabled: true
+    runAsUser: 1001
+# --- Network Policy ---
+# Goal: Restrict network access to the database pods for security (requires NetworkPolicy CNI).
+# networkPolicy:
+#   enabled: true
+#   # Allow traffic only from pods with specific labels (e.g., your application pods)
+#   # Official chart default is true, setting to false restricts access.
+#   allowExternal: false # [cite: 106]
+#   # Correct key for custom ingress rules is extraIngress [cite: 108]
+#   extraIngress: # [cite: 108]
+#     # Allow connections from pods labeled 'app=my-application' in the same namespace
+#     - ports:
+#         - protocol: TCP
+#           port: 3306 # MySQL port
+#       from:
+#         - podSelector:
+#             matchLabels:
+#               app: my-application # CHANGE THIS to your app's label
+#   # allowExternalEgress: true # Add this if you need default egress, otherwise it might be restricted too [cite: 107]
